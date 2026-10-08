@@ -1,0 +1,37 @@
+{
+  "runtime_source": "2b7862d4dce9a7c9cdc71b96a4b8693c4e860b2b",
+  "before_ui": "f2a7dc6b2850a6f0c0e1ea1b53494b12cd2e1221",
+  "runtime": "Windows Chrome + real Project HTTP/state in a disposable fixture",
+  "models_or_real_tools": false,
+  "page_errors": [],
+  "results": [
+    {
+      "width": 1440,
+      "state": "PASS",
+      "literal_external_text": true,
+      "horizontal_overflow": false,
+      "human_grant_and_revoke": "PASS",
+      "changed_body": "approval_operation_changed",
+      "changed_contract": "contract_version_changed",
+      "revoked": "approval_revoked",
+      "unsent_question_preserved": true,
+      "execution": "hold",
+      "worker_execution": "not_started",
+      "consumed_attempts": 0
+    },
+    {
+      "width": 390,
+      "state": "PASS",
+      "literal_external_text": true,
+      "horizontal_overflow": false,
+      "human_grant_and_revoke": "PASS",
+      "changed_body": "approval_operation_changed",
+      "changed_contract": "contract_version_changed",
+      "revoked": "approval_revoked",
+      "unsent_question_preserved": true,
+      "execution": "hold",
+      "worker_execution": "not_started",
+      "consumed_attempts": 0
+    }
+  ]
+}

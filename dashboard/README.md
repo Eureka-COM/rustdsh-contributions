@@ -142,6 +142,9 @@ or served. Treat all user-authored questions, answers, progress, and paths as da
 
 ## Versioned task contracts (P0 foundation, Issue #12)
 
+Current-main integration, fresh tests, and real browser evidence are recorded in
+[the task-contract re-review](../docs/evidence/task-contract-rereview.md).
+
 Create the task first, then save its contract with the local administrator CLI:
 
 ```sh
