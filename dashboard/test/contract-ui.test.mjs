@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs/promises";
-import vm from "node:vm";
+import { renderTaskContract, renderOperations } from "../contract-view.mjs";
 
 test("contracts and approval scopes render as literal text; human choices bind request version", async () => {
   class Element {
@@ -54,26 +53,26 @@ test("contracts and approval scopes render as literal text; human choices bind r
   previousApproval.reserved_cost_microusd = 500000;
   state.approval_requests[0].versions.unshift(previousApproval);
   const decisions = [];
-  const source = await fs.readFile(new URL("../app.mjs", import.meta.url), "utf8");
-  await vm.runInNewContext(`(async () => {\n${source}\n})()`, {
-    document, location: { pathname: "/", search: "", hash: "" },
-    sessionStorage: { getItem: () => null, setItem() {} }, history: { replaceState() {} },
-    URL, URLSearchParams,
-    EventSource: class { addEventListener() {} },
-    fetch: async (route, options) => {
-      if (route.endsWith("approvals/decide")) {
-        decisions.push(JSON.parse(options.body));
-        state.approval_requests[0].versions.at(-1).status = decisions.at(-1).decision === "grant" ? "granted" : "revoked";
-      }
-      return {
-      ok: true,
-      json: async () => route.endsWith("config") ? {
-        kind: "project", project: { name: "Test", root: "/fixture" },
-        share: { state: "disabled", message: "Local fixture", url: null },
-      } : state,
-      };
-    },
-  });
+  const node = (tag, text, className) => {
+    const element = document.createElement(tag);
+    if (text !== undefined) element.textContent = text;
+    if (className) element.className = className;
+    return element;
+  };
+  const render = () => {
+    elements.get("tasks").replaceChildren(...state.tasks.map((task) => renderTaskContract(task, state, node)));
+    renderOperations(state, document.getElementById("policy-checks"), document.getElementById("approvals"), {
+      node,
+      api: async (route, decision) => {
+        assert.equal(route, "approvals/decide");
+        decisions.push(decision);
+        state.approval_requests[0].versions.at(-1).status = decision.decision === "grant" ? "granted" : "revoked";
+      },
+      refreshState: async () => render(),
+    });
+  };
+  document.getElementById("tasks");
+  render();
   const descendants = (element) => [element, ...element.children.flatMap(descendants)];
   const nodes = descendants(elements.get("tasks"));
   const labels = nodes.map((node) => node.textContent);
