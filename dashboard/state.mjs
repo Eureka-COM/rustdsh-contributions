@@ -242,7 +242,7 @@ export class ProjectStore {
         data: {
           project_id: this.project.id,
           revision: next.revision,
-          entity_id: input.id || input.task_id || "",
+          entity_id: input?.id || input?.task_id || "",
           summary: String(summary).slice(0, 1000),
         },
         cursor: null,
