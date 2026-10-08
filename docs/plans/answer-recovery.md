@@ -1,7 +1,9 @@
 # Project dashboard: answer recovery
+
 規模: 中（下書きのタブ内保存・送信状態・再接続の照合を既存画面へ接続する）。
 
 ## 目的と受入条件
+
 QAで見つけたreload/backの未送信入力消失と、
 送信保留中のSSE更新で再送できる問題を製品側で修正する。
 同一タブ・同一接続元の再読込/戻るで文章を復元し、
@@ -12,6 +14,7 @@ QAで見つけたreload/backの未送信入力消失と、
 Rust launcherのstatus pageには保存・復元処理を加えない。
 
 ## 構成
+
 既存app.mjsの質問別状態をDOM外に保持し、input時にsessionStorageへ保存。
 project.idと質問のid/created_at/question/default_actionを対応づけ、
 別project/別質問へ復元しない。接続元はscheme/host/portの組であり、
@@ -30,13 +33,15 @@ GETは先行POSTの完了を待たないため、未回答という取得結果�
 新しいサービス・権限・agent loopは加えず、既存色とレイアウトを使う。
 
 ## 境界
-#52のQAツールとは区別した追加コミットにする。
+
+Issue #52のQAツールとは区別した追加コミットにする。
 完全な圏外ページ読取・別タブ/端末間同期・タブを閉じた後の長期保存は今回の対象外。
-#71の全要件を完了したとは主張しない。通常の回答操作の保持と重複防止を直す。
+Issue #71の全要件を完了したとは主張しない。通常の回答操作の保持と重複防止を直す。
 HTTPクライアントやネットワークによる再試行まで含めた厳密な一回限りの送信は保証しない。
 回答の保存数は既存serverの一質問一回答で守り、UIから重ねて送る操作を防ぐ。
 
 ## 検証
+
 作業場所: work/rustdsh-issue52。
 ランタイム: Windows, E:/runtimes/node/node.exe 24.13.0。
 変更前 npm test --prefix dashboard:18件成功（2026-10-08）。
