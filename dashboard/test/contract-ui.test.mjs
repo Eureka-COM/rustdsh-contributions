@@ -21,6 +21,7 @@ test("contracts and approval scopes render as literal text; human choices bind r
   }
   const elements = new Map();
   const document = {
+    addEventListener() {},
     createElement: (tag) => new Element(tag),
     getElementById: (id) => {
       if (!elements.has(id)) elements.set(id, new Element("div"));

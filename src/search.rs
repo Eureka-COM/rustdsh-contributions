@@ -146,13 +146,16 @@ fn collect_parallel(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
         .collect();
     let mut resolved: Vec<Vec<std::path::PathBuf>> = vec![];
     resolved.resize_with(sub_idx.len(), Vec::new);
-    for batch in sub_idx.chunks(8) {
+    let width = crate::inspect::parallelism().max(1);
+    for (batch_no, batch) in sub_idx.chunks(width).enumerate() {
         std::thread::scope(|s| {
             let mut handles = vec![];
             for (k, seg_i) in batch.iter().enumerate() {
                 if let Seg::Sub(p) = &segs[*seg_i] {
+                    // slot in `resolved` = global index into sub_idx.
+                    let pos = batch_no * width + k;
                     handles.push((
-                        k,
+                        pos,
                         s.spawn(move || {
                             let mut v = vec![];
                             collect_files(p, &mut v);
@@ -161,9 +164,7 @@ fn collect_parallel(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
                     ));
                 }
             }
-            for (k, h) in handles {
-                let slot = batch[k];
-                let pos = sub_idx.iter().position(|x| *x == slot).unwrap_or(0);
+            for (pos, h) in handles {
                 resolved[pos] = h.join().unwrap_or_default();
             }
         });
@@ -221,10 +222,7 @@ fn grep_one(pattern: &str, path: &std::path::Path) -> Vec<String> {
 }
 
 fn grep_parallel(pattern: &str, files: &[std::path::PathBuf]) -> Vec<Vec<String>> {
-    let threads = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(4)
-        .clamp(1, 8);
+    let threads = crate::inspect::parallelism();
     if threads <= 1 {
         return files.iter().map(|p| grep_one(pattern, p)).collect();
     }
@@ -248,17 +246,19 @@ fn truncate(s: &str, n: usize) -> String {
         return s.to_string();
     }
     let mut t: String = s.chars().take(n).collect();
-    t.push(gt_sign());
+    t.push('>');
     t
-}
-
-fn gt_sign() -> char {
-    62 as char
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn worker_cap() {
+        // Issue #85-4: walker/grep threads follow cores, clamped 1..=8.
+        assert!((1..=8).contains(&crate::inspect::parallelism()));
+    }
 
     #[test]
     fn capped_boundary() {

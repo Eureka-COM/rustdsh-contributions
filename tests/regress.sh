@@ -3,6 +3,15 @@
 BIN="${BIN:-./target/release/rdsh}"
 pass=0
 ok() { pass=$((pass+1)); echo "ok: $1"; }
+# Sandboxed HOME/DSH_HOME: this suite must never write to the real ~/.dsh
+# (issue #85 item 8). Tests that need fixtures override HOME/DSH_HOME explicitly.
+if [ "${RDSH_REGRESS_SANDBOXED:-}" != 1 ]; then
+  RR_SANDBOX="$(mktemp -d 2>/dev/null || mktemp -d -t rdsh-regress)"
+  mkdir -p "$RR_SANDBOX/home" "$RR_SANDBOX/dsh"
+  HOME="$RR_SANDBOX/home"; DSH_HOME="$RR_SANDBOX/dsh"; RDSH_REGRESS_SANDBOXED=1
+  export HOME DSH_HOME RDSH_REGRESS_SANDBOXED RR_SANDBOX
+  trap 'rm -rf "$RR_SANDBOX"' EXIT INT TERM
+fi
 need_ok() {
   desc="$1"; shift
   if "$@" >/tmp/rr-out 2>/tmp/rr-err; then ok "$desc"; else echo "FAIL(exit): $desc"; cat /tmp/rr-err; exit 1; fi
@@ -77,10 +86,17 @@ FR=/tmp/rdsh-fr-AA
 mkdir -p $FR/pkg $FR/bin $FR/latest/download
 cp "$BIN" $FR/pkg/rdsh
 for a in rdsh-linux-x64 rdsh-macos-arm64 rdsh-macos-x64; do tar -czf "$FR/latest/download/$a.tar.gz" -C $FR/pkg rdsh; done
+if command -v sha256sum >/dev/null 2>&1; then SUM="sha256sum"; else SUM="shasum -a 256"; fi
+for a in rdsh-linux-x64 rdsh-macos-arm64 rdsh-macos-x64; do (cd "$FR/latest/download" && $SUM "$a.tar.gz" > "$a.tar.gz.sha256"); done
 # NOTE: install.sh needs bash (pipefail); `sh` is dash on Ubuntu CI.
 if RDSH_RELEASE_BASE="file://$FR" DSH_HOME="$FR/dsh" bash ./install.sh --from-release --prefix="$FR/bin" >$FR/install.log 2>&1 && "$FR/bin/rdsh" --version 2>/dev/null | grep -q "rdsh"; then ok "from-release install"; else echo "FAIL(output): from-release install"; tail -n 8 $FR/install.log; exit 1; fi
+tar -czf "$FR/latest/download/rdsh-linux-x64-musl.tar.gz" -C $FR/pkg rdsh
+(cd "$FR/latest/download" && $SUM "rdsh-linux-x64-musl.tar.gz" > "rdsh-linux-x64-musl.tar.gz.sha256")
+if RDSH_RELEASE_BASE="file://$FR" DSH_HOME="$FR/dsh" bash ./install.sh --from-release --musl --prefix="$FR/bin-musl" >$FR/install-musl.log 2>&1 && "$FR/bin-musl/rdsh" --version 2>/dev/null | grep -q "rdsh"; then ok "from-release musl install"; else echo "FAIL(output): from-release musl install"; tail -n 8 $FR/install-musl.log; exit 1; fi
 printf "version: 1\nrecords:\n  llm-pi-ai/openai-codex:\n    kind: api-key\n    key: sk-user-key\n" > "$AB/dsh/.credentials.yaml"
 if HOME="$AB/home" DSH_HOME="$AB/dsh" $BIN auth --import >/dev/null 2>&1 && grep -q "kind: api-key" "$AB/dsh/.credentials.yaml" && HOME="$AB/home" DSH_HOME="$AB/dsh" $BIN auth 2>/dev/null | grep -q "left alone"; then ok "auth keeps api-key records"; else echo "FAIL(output): auth keeps api-key records"; exit 1; fi
+for t in "$FR"/latest/download/*.tar.gz; do printf "tampered" >> "$t"; done
+if RDSH_RELEASE_BASE="file://$FR" DSH_HOME="$FR/dsh" bash ./install.sh --from-release --prefix="$FR/bin-evil" >$FR/install-evil.log 2>&1; then echo "FAIL(output): tampered release refused"; exit 1; else ok "tampered release refused"; fi
 rm -rf $FR
 SW=/tmp/rdsh-setupweb-AA
 mkdir -p $SW/home $SW/dsh
@@ -114,10 +130,15 @@ http.server.HTTPServer(("127.0.0.1", int(sys.argv[2])), H).serve_forever()
 PYEOF
 HTTPSRV=$!
 sleep 1
+if $BIN search-web "hello world" 2>&1 | grep -q "disabled by default"; then ok "search-web refused while extra off"; else echo "FAIL(output): extras gate"; kill $HTTPSRV 2>/dev/null; exit 1; fi
+$BIN settings set extras.enable search-web >/dev/null 2>&1
 if SEARXNG_URL="http://127.0.0.1:38083" $BIN search-web "hello world" --limit 5 2>/dev/null | grep -q "Alpha result"; then ok "search-web via fixture"; else echo "FAIL(output): search-web via fixture"; kill $HTTPSRV 2>/dev/null; exit 1; fi
 kill $HTTPSRV 2>/dev/null
 wait $HTTPSRV 2>/dev/null || true
 rm -rf $SWB
+if bash ./install.sh --help 2>/dev/null | grep -q -- "--musl"; then ok "install.sh documents --musl"; else echo "FAIL(output): install.sh documents --musl"; exit 1; fi
+if grep -q "RDSH_SYNC_FROM_SOURCE" ./sync-dsh.sh && grep -q "sandboxed_regress" ./sync-dsh.sh; then ok "sync-dsh release-first + sandboxed regress"; else echo "FAIL(output): sync-dsh release-first + sandboxed regress"; exit 1; fi
+if [ "${RDSH_REGRESS_SANDBOXED:-}" = 1 ] && [ -n "${RR_SANDBOX:-}" ] && [ "$HOME" = "$RR_SANDBOX/home" ] && [ "$DSH_HOME" = "$RR_SANDBOX/dsh" ]; then ok "regress sandboxed HOME"; else echo "FAIL(output): regress sandboxed HOME"; exit 1; fi
 rm -rf $AB
 rm -rf $SB /tmp/rr-in.txt /tmp/rr-out /tmp/rr-err
 echo "ALL PASS ($pass checks)"
