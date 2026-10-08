@@ -4,10 +4,7 @@ Refs #52。Project dashboardの利用経路ごとの確認済み・未確認を�
 
 ## Changes (変更)
 
-57セルの試験定義、証拠付きJSON検査、絞り込めるHTML、隔離通信障害fixtureと、検証で発見した回答復旧・認証案内・モバイル表示の修正を全量収録します。main `96dbcbb`の既存機能へ統合し、参考情報はPC・携帯共通で質問文の下・回答欄の上に置き、初期状態を折り畳みます。[変更と検証記録](README.md) · [撮影条件・過去の修正前後PNG/GIF](visual-evidence.md)
-
-![統合後のPC表示（1440px幅）](images/integrated-desktop-reference.png)
-![統合後の携帯幅表示（390px）](images/integrated-mobile-reference.png)
+57セルの試験定義、証拠付きJSON検査、絞り込めるHTML、隔離通信障害fixtureと、検証で発見した回答復旧・認証案内・モバイル表示の修正を全量収録します。main `96dbcbb`の既存機能へ統合し、参考情報はPC・携帯共通で質問文の下・回答欄の上に置き、初期状態を折り畳みます。[変更と検証記録](README.md)
 
 ## Verification (検証)
 
@@ -21,4 +18,4 @@ Refs #52。Project dashboardの利用経路ごとの確認済み・未確認を�
 
 main統合後のiPhone実機・WSL/Tailscale実接続は未再試験。旧履歴の4 blockedはiPhoneの外付けキーボード不足で、53は独立試行数でも統合後の全セル再実施数でもありません。過去の認証失敗の具体的操作順は未特定。同タブ/同originの下書き保持が対象で、完全オフライン・端末同期・DSHのagent loop・実行権限は変更しません。旧版のRust・CLI結果も現在のmainの合格として流用しません。
 
-main既存のclippy 2件とE2E終了時のSSE resetは残存。E2Eは主要3フローを完了してもコマンド全体はfailです。軽量安全チェックは指摘0件ですが、テスト補助1ファイルに解析警告があります。本文の2画像は統合後のPC実ブラウザー撮影で、iPhone実機写真ではありません。
+main既存のclippy 2件とE2E終了時のSSE resetは残存。E2Eは主要3フローを完了してもコマンド全体はfailです。軽量安全チェックは指摘0件ですが、テスト補助1ファイルに解析警告があります。
