@@ -95,3 +95,16 @@ The main launcher now has its own restricted `rdsh_inspect` runtime boundary.
 That does not supply an enforcement adapter to this PR's versioned approval
 path: valid approvals here still return hold and consume zero attempts, as
 shown in the browser/API record above.
+
+## Native E2E main integration
+
+Merged main `98abc67d7e5c5d3f2a5321d9a56adb6a83ff93e2` at
+`a4aa44a002d57f62f05a5bcf92697a3edc8de262`. The contract UI and boundary
+modules remain unchanged. Removed main's tracked, host-specific
+`dashboard/node_modules` symlink; dependencies are installed from the lockfile.
+
+Windows Node 22 passed the 13 focused dashboard, contract and contract-view
+checks, including HTTP/stdio MCP and the unauthenticated favicon route.
+The complete release-build counts in the previous section belong to the
+explicit earlier source. The latest head's CI additionally covers main's new
+native E2E and benchmark examples before merge.
