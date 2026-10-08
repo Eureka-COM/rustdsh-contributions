@@ -12,6 +12,17 @@ import { renderReport } from "../qa/view.mjs";
 const empty = () => ({schema:1,target:{sha:"a".repeat(40),dirty:true,note:"Uncommitted QA change"},results:[]});
 const result = (extra={}) => ({case_id:"project-desktop-local-sse-draft",status:"pass",level:"browser",observed_route:"local",tested_at:"2026-10-08T04:00:00Z",environment:{os:"Windows",node:"24.13.0",browser:"IAB / version unknown",device:"desktop"},command:"node dashboard/qa/fixture.mjs",reason:"Draft survived the event",evidence:["evidence/sse.png"],observations:{input_lost:false,duplicate_answers:0,answer_requests:0,feedback_count:0,focus_preserved:true},...extra});
 
+test("evidence paths reject repeated hyphens without blocking report validation", () => {
+  const url = new URL("../qa/report.mjs", import.meta.url).href;
+  const source = `import { evidencePath } from ${JSON.stringify(url)};
+    try { evidencePath('a' + '-'.repeat(450) + '.exe'); process.exitCode = 1; }
+    catch (error) { if (!error.message.includes('Evidence must')) throw error; }`;
+  const child = spawnSync(process.execPath, ["--input-type=module", "-e", source], {
+    timeout: 3000, encoding: "utf8",
+  });
+  assert.equal(child.status, 0, child.error?.message || child.stderr);
+});
+
 test("catalogue includes every declared operation/device/route without pretending to test them", () => {
   assert.equal(new Set(cases.map(item=>item.id)).size,cases.length);
   for (const route of ["local","wsl","tailscale"]) for (const device of ["desktop","mobile"]) for (const [operation] of operations)

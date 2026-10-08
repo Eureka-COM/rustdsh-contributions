@@ -19,7 +19,7 @@ function time(value) {
 export function evidencePath(value) {
   text(value, "evidence path", 512);
   // Evidence stays relative to the saved report. No credential URLs or active schemes.
-  if (!/^[A-Za-z0-9_-]+(?:[./-][A-Za-z0-9_-]+)*\.(?:png|jpg|jpeg|gif|txt|json|html|log|md)$/.test(value) || value.includes(".."))
+  if (!/^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*\.(?:png|jpg|jpeg|gif|txt|json|html|log|md)$/.test(value) || value.includes(".."))
     throw new Error("Evidence must be a relative file path without URL, query or traversal");
   return value;
 }
