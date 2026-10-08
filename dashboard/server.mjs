@@ -467,7 +467,8 @@ export async function startDashboard(options) {
           route === "/answer-applications-ui.mjs" ||
           route === "/instruction-queue-ui.mjs" ||
           route === "/cost-ledger-ui.mjs" ||
-          route === "/budget-ui.mjs");
+          route === "/budget-ui.mjs" ||
+          route === "/favicon.ico");
       if (
         !publicAsset &&
         !adminAuthorized &&
@@ -481,6 +482,10 @@ export async function startDashboard(options) {
             "Open this dashboard through rdsh-dashboard open or its QR code",
         });
       if (closing) return json(res, 503, { error: "Dashboard is stopping" });
+      if (publicAsset && route === "/favicon.ico") {
+        res.writeHead(204);
+        return res.end();
+      }
       if (req.method === "GET" && route === "/api/managed-process")
         return json(
           res,
