@@ -7,15 +7,22 @@ loop remain independently usable.
 
 ## Sources and verification
 
-- Current main `f2a7dc6b2850a6f0c0e1ea1b53494b12cd2e1221` is integrated in
-  `8a7753ce61f58d488f6d9c100192a7a0cbd72fe9`. Conflicts retain the current question
-  copy, navigation, command palette, and the new contract/approval sections.
+- Current main `1fdec5fc2bb77f76901726fe616396b5371016f0` is integrated in
+  `3f1f7dc25910794de3557acf7303da494ac423e0`. Conflicts retain the current overview,
+  typed question cards, answer application, budget/cost panels, navigation, and
+  command palette. The contract/approval UI is a separate browser module, with
+  its own expandable section and the existing literal-text regression test.
 - `2b7862d4dce9a7c9cdc71b96a4b8693c4e860b2b` fixes long approval digests and source
   references extending the page beyond a 390 px viewport.
-- Fresh Linux verification of the integrated source: Rust 66, plugin 13,
-  dashboard 29, CLI regression 42, settings 20, and context 21 tests passed.
+- `d6a94949e3cb4f69c5298bf0eb86e2098052a714` preserves the deny/audit result of a
+  malformed null policy input when committing the merged event history, and
+  updates two inherited inventory assertions for the twelve-tool catalog.
+- Fresh Linux verification at `d6a9494`: Rust 68, plugin 13,
+  dashboard 203, CLI regression 53, settings 20, and context 21 tests passed.
   `cargo fmt --check` and release Clippy with warnings denied passed.
-- Fresh Windows Node 22 dashboard tests: 29 passed, no skips.
+- Windows Node 22 initially passed 200 of 203 integrated tests; the three failures
+  above were fixed, and all 19 tests in their three affected files then passed.
+  Final all-suite Windows validation is provided by the PR's current-head CI.
 - Windows Chrome exercised the current production UI against the real Project
   HTTP server and persistent state in a disposable fixture at 1440 px and 390 px.
   The before screenshot serves main's UI against the same fixture/backend data;
