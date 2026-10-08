@@ -76,3 +76,22 @@ automatic DSH provenance capture, launcher/startup reads, direct backends, LLM
 requests, and plugin unloading are outside its protected tool boundary. The guard
 has no allow/claim path that would execute a tool without a verified adapter.
 These checks do not establish production adoption or full sandbox protection.
+
+## Guarded-main integration on 2026-10-08
+
+Integrated main `57777a61f7b3043b890f52cd5fd400ed761290b1` at
+`11584d823788f200e2894fc49e27a9b80ce068eb`. Dashboard sources are unchanged
+from the browser captures above; this merge updates the native launcher and
+shared security checks.
+
+An isolated release build passed Rust 74 tests, Node security 29 tests,
+dashboard 203 tests (zero skipped), CLI 53 checks, settings 20 checks,
+context 21 checks, and Python release-artifact 6 tests. Formatting and release
+clippy with warnings denied passed. The security run used bubblewrap with dummy
+files and credentials; it exercised kernel denial of network, writes, inherited
+environment and namespace creation. It made no model calls.
+
+The main launcher now has its own restricted `rdsh_inspect` runtime boundary.
+That does not supply an enforcement adapter to this PR's versioned approval
+path: valid approvals here still return hold and consume zero attempts, as
+shown in the browser/API record above.
