@@ -6,12 +6,20 @@ function metric(ui, title) {
   return ui.element("cards").children.find((card) => card.children[0].textContent === title);
 }
 
-test("unreported metrics, a zero denominator and measured zero remain distinct", async () => {
+test("unavailable metrics, a zero denominator and measured zero remain distinct", async () => {
   const state = stateFor();
   const ui = await loadDashboard({ state });
-  assert.equal(metric(ui, "従来の累計報告（API換算）").children[1].textContent, "未報告");
-  assert.match(metric(ui, "従来の累計報告（API換算）").textContent, /上限 未報告/);
-  assert.equal(metric(ui, "ツールのエラー率").children[1].textContent, "未報告");
+  assert.equal(metric(ui, "従来の累計報告（API換算）").children[1].textContent, "未取得");
+  assert.match(metric(ui, "従来の累計報告（API換算）").textContent, /上限 未取得/);
+  assert.equal(metric(ui, "ツールのエラー率").children[1].textContent, "未取得");
+  const observation = {
+    kind: "measured", observed_at: new Date().toISOString(),
+    max_age_seconds: 600, source: "mobile-presentation fixture", report_id: "zero-metrics",
+  };
+  state.metric_observations = Object.fromEntries(
+    ["total_cost_usd", "input_tokens", "cached_input_tokens", "tool_calls", "tool_errors"]
+      .map((key) => [key, observation]),
+  );
   state.metrics = { total_cost_usd: 0, input_tokens: 0, cached_input_tokens: 0, tool_calls: 0, tool_errors: 0 };
   state.revision++;
   await ui.changed();

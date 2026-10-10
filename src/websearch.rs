@@ -53,7 +53,7 @@ fn split_base(base: &str) -> anyhow::Result<(String, u16, String)> {
     );
     let rest = base
         .strip_prefix("http://")
-        .ok_or_else(|| anyhow::anyhow!("only http:// SearXNG URLs are supported: {base}"))?;
+        .ok_or_else(|| anyhow::anyhow!("only http:// SearXNG URLs are supported (for a remote instance use an SSH tunnel to localhost): {base}"))?;
     let (hostport, prefix) = match rest.find('/') {
         Some(i) => (&rest[..i], rest[i..].to_string()),
         None => (rest, String::new()),
@@ -224,10 +224,7 @@ fn find_link_text(blk: &str) -> Option<String> {
         let tag = &rest[a..];
         let close = tag.find('>')?;
         let head = &tag[..close];
-        let ok = match attr(head, "href") {
-            Some(u) => !u.is_empty() && !u.starts_with('#'),
-            None => false,
-        };
+        let ok = attr(head, "href").is_some_and(|u| !u.is_empty() && !u.starts_with('#'));
         let after = &tag[close + 1..];
         if ok {
             let end = after.find("</a>").unwrap_or(after.len());

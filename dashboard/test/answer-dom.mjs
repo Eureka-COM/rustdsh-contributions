@@ -66,12 +66,12 @@ class Element extends Events {
     return this.attributes.get(name) ?? null;
   }
   matches(selector) {
-    if (selector.startsWith(".")) return this.className.split(" ").includes(selector.slice(1));
     if (selector.startsWith("#")) return this.id === selector.slice(1);
-    const match = selector.match(/^([a-z][a-z0-9-]*)?(?:\[([\w-]+)(?:=["']?([^"'\]]+)["']?)?\])?(:checked)?$/i);
+    const match = selector.match(/^([a-z][a-z0-9-]*)?(?:\.([\w-]+))?(?:\[([\w-]+)(?:=["']?([^"'\]]+)["']?)?\])?(:checked)?$/i);
     if (!match) throw new Error("Unsupported test selector: " + selector);
-    const [, tag, attribute, value, checked] = match;
+    const [, tag, className, attribute, value, checked] = match;
     if (tag && this.tagName !== tag.toUpperCase()) return false;
+    if (className && !this.className.split(" ").includes(className)) return false;
     if (checked && !this.checked) return false;
     if (!attribute) return true;
     const actual = attribute.startsWith("data-")
@@ -153,6 +153,8 @@ export async function loadDashboard({
   document.body = new Element("body", document);
   document.createElement = (tag) => new Element(tag, document);
   document.getElementById = (id) => document.body.querySelector("#" + id);
+  document.querySelector = (selector) => document.body.querySelector(selector);
+  document.querySelectorAll = (selector) => document.body.querySelectorAll(selector);
   // Keep the real HTML hierarchy: overview and panel modules query inside their
   // roots, so a flat collection of IDs would skip their actual render paths.
   const body = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)[1];
